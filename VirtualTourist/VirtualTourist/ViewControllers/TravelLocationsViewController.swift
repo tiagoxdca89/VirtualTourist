@@ -7,9 +7,13 @@
 //
 
 import UIKit
+import MapKit
 
 class TravelLocationsViewController: UIViewController {
-
+    
+    
+    @IBOutlet weak var mapKit: MKMapView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 

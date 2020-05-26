@@ -7,9 +7,14 @@
 //
 
 import UIKit
+import MapKit
 
 class PhotoAlbumViewController: UIViewController {
-
+    
+    @IBOutlet weak var mapKit: MKMapView!
+    @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var btnNewCollection: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
