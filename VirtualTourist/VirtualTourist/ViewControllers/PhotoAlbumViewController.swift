@@ -15,6 +15,8 @@ class PhotoAlbumViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var btnNewCollection: UIButton!
     
+    var location: String?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 

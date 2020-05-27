@@ -32,7 +32,7 @@
                     <navigationItem key="navigationItem" id="Ke7-hO-Dsi"/>
                     <connections>
                         <outlet property="mapKit" destination="yEK-mN-KkC" id="PZr-Hc-6Rf"/>
-                        <segue destination="2GH-1m-d7C" kind="show" id="oJj-fu-vGr"/>
+                        <segue destination="2GH-1m-d7C" kind="show" identifier="toPhotoAlbum" id="oJj-fu-vGr"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="vkC-eV-vpI" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

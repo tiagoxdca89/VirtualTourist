@@ -14,12 +14,20 @@ class TravelLocationsViewController: UIViewController {
     
     @IBOutlet weak var mapKit: MKMapView!
     
+    let segueIdentifier = "toPhotoAlbum"
     var mapManager: MapKitManager?
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         setupMapKit()
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard segue.identifier == segueIdentifier,
+            let photoAlbum = segue.destination as? PhotoAlbumViewController else { return }
+        guard let location = sender as? String else { return }
+        photoAlbum.location = location
     }
     
 
@@ -33,6 +41,6 @@ class TravelLocationsViewController: UIViewController {
 
 extension TravelLocationsViewController: MapKitManagerDelegate {
     func tapOnLocation(location: String) {
-        print("=====Tap on \(location)")
+        self.performSegue(withIdentifier: segueIdentifier, sender: location)
     }
 }
