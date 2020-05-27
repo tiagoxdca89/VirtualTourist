@@ -26,7 +26,7 @@ class TravelLocationsViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard segue.identifier == segueIdentifier,
             let photoAlbum = segue.destination as? PhotoAlbumViewController else { return }
-        guard let location = sender as? String else { return }
+        guard let location = sender as? MKLocation else { return }
         photoAlbum.location = location
     }
     
@@ -40,7 +40,7 @@ class TravelLocationsViewController: UIViewController {
 }
 
 extension TravelLocationsViewController: MapKitManagerDelegate {
-    func tapOnLocation(location: String) {
+    func tapOnLocation(location: MKLocation) {
         self.performSegue(withIdentifier: segueIdentifier, sender: location)
     }
 }

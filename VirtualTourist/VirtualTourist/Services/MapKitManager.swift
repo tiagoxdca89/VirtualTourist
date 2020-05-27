@@ -9,8 +9,10 @@
 import Foundation
 import MapKit
 
+typealias MKLocation = (name: String, coordinate: CLLocationCoordinate2D)
+
 protocol MapKitManagerDelegate: class {
-    func tapOnLocation(location: String)
+    func tapOnLocation(location: MKLocation)
 }
 
 class MapKitManager: NSObject {
@@ -108,7 +110,9 @@ extension MapKitManager: MKMapViewDelegate {
                 print("Something went wrong")
                 return
             }
-            delegate?.tapOnLocation(location: (title ?? subtitle) ?? "Unkown")
+            guard let coordinate = view.annotation?.coordinate else { return }
+            delegate?.tapOnLocation(location: (name: title ?? subtitle ?? "Unknown",
+                                               coordinate: coordinate))
         }
     }
 }
