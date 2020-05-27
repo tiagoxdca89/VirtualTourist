@@ -14,21 +14,25 @@ class TravelLocationsViewController: UIViewController {
     
     @IBOutlet weak var mapKit: MKMapView!
     
+    var mapManager: MapKitManager?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        setupMapKit()
     }
     
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    private func setupMapKit() {
+        mapManager = MapKitManager(map: mapKit)
+        mapManager?.delegate = self
+        guard let manager = mapManager else { return }
+        mapKit.delegate = manager
     }
-    */
+}
 
+extension TravelLocationsViewController: MapKitManagerDelegate {
+    func tapOnLocation(location: String) {
+        print("=====Tap on \(location)")
+    }
 }

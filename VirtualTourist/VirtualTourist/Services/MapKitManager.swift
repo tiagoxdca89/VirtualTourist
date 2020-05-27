@@ -9,51 +9,106 @@
 import Foundation
 import MapKit
 
-class MapKitManager {
+protocol MapKitManagerDelegate: class {
+    func tapOnLocation(location: String)
+}
+
+class MapKitManager: NSObject {
     
     let map: MKMapView
-    var pins: [PinModel] = []
+    static var pins: [PinModel] = []
+    weak var delegate: MapKitManagerDelegate?
     
     init(map: MKMapView) {
         self.map = map
+        super.init()
+        self.addLongPressGestureToMap()
     }
     
     private func addLongPressGestureToMap() {
         let gesture = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(gestureRecognizer:)))
-        gesture.minimumPressDuration = 2.0
+        gesture.minimumPressDuration = 1.0
         map.addGestureRecognizer(gesture)
     }
     
     @objc func addAnnotation(gestureRecognizer: UIGestureRecognizer){
         if gestureRecognizer.state == .began{
-            let touchPoint = gestureRecognizer.location(in: map)
-            let newCoordinates = map.convert(touchPoint, toCoordinateFrom: map)
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = newCoordinates
-
-            let location = CLLocation(latitude: newCoordinates.latitude, longitude: newCoordinates.longitude)
             
-            CLGeocoder().reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
-                if let error = error {
-                    return
-                }
-                
+            let coordinates = getCoordinates(gestureRecognizer)
+            let annotation = makeAnnotation(coordinates)
+            let location = getLocation(coordinates)
+            reverseGeocodeLocation(location, annotation, coordinates)
+        }
+    }
+}
+
+extension MapKitManager{
+    private func getCoordinates(_ gestureRecognizer: UIGestureRecognizer) -> CLLocationCoordinate2D {
+        let touchPoint = gestureRecognizer.location(in: map)
+        return map.convert(touchPoint, toCoordinateFrom: map)
+    }
+    
+    private func makeAnnotation(_ coordinates: CLLocationCoordinate2D) -> MKPointAnnotation {
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinates
+        return annotation
+    }
+    
+    private func getLocation(_ coordinates: CLLocationCoordinate2D) -> CLLocation {
+        return CLLocation(latitude: coordinates.latitude, longitude: coordinates.longitude)
+    }
+    
+    private func insertAnnotationOnMap(_ placemarks: [CLPlacemark], annotation: MKPointAnnotation) {
+        if placemarks.count > 0 {
+            let pm = placemarks[0]
+            
+            annotation.title = pm.locality
+            annotation.subtitle = pm.subLocality
+            self.map.addAnnotation(annotation)
+            debugPrint("[Locality] => \(pm.locality ?? pm.subLocality ?? "Unknown Place")")
+        }
+        else {
+            annotation.title = "Unknown Place"
+            self.map.addAnnotation(annotation)
+        }
+    }
+    
+    private func reverseGeocodeLocation(_ location: CLLocation, _ annotation: MKPointAnnotation, _ coordinates: CLLocationCoordinate2D) {
+        CLGeocoder().reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
+            if let error = error {
+                debugPrint("\(error.localizedDescription)")
+                return
+            }
             guard let placemarks = placemarks else { return }
-
-            if placemarks.count > 0 {
-                let pm = placemarks[0]
-
-                annotation.title = pm.locality
-                annotation.subtitle = pm.subLocality
-                self.map.addAnnotation(annotation)
-                debugPrint("[Locality] => \(pm.locality ?? "Unknown")")
-            }
-            else {
-                annotation.title = "Unknown Place"
-                self.map.addAnnotation(annotation)
-            }
-                self.pins.append(PinModel(locationName: annotation.title, latitude: newCoordinates.latitude, longitude: newCoordinates.longitude))
+            self.insertAnnotationOnMap(placemarks, annotation: annotation)
+            MapKitManager.pins.append(PinModel(locationName: annotation.title, latitude: coordinates.latitude, longitude: coordinates.longitude))
         })
     }
+}
+extension MapKitManager: MKMapViewDelegate {
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        let reuseId = "pin"
+        var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
+        if pinView == nil {
+            pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
+            pinView!.canShowCallout = true
+            pinView?.pinTintColor = .red
+            pinView!.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
+        }
+        else {
+            pinView!.annotation = annotation
+        }
+        return pinView
+    }
+    
+    func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+        if control == view.rightCalloutAccessoryView {
+            guard let title = view.annotation?.title, let subtitle = view.annotation?.subtitle else {
+                print("Something went wrong")
+                return
+            }
+            delegate?.tapOnLocation(location: (title ?? subtitle) ?? "Unkown")
+        }
     }
 }
