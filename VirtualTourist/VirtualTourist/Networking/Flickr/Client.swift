@@ -10,11 +10,11 @@ import Foundation
 
 class Client {
     
-    static let apiKey = "YOUR_TMDB_API_KEY"
+    static let apiKey = "6857b2f3fb97230b27dd5a09f7ef3b47"
+    static let secret = "3596c683186d3ace"
     
     enum Endpoints {
         case getPhotos
-        
         
         var stringValue: String {
             switch self {

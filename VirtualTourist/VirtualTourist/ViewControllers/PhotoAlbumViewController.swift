@@ -15,7 +15,7 @@ class PhotoAlbumViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var btnNewCollection: UIButton!
     
-    let leftAndRightPaddings: CGFloat = 0
+    var photos: [FlickrPhoto] = []
     
     var location: MKLocation?
     lazy var itemSize: CGSize = {
@@ -28,7 +28,21 @@ class PhotoAlbumViewController: UIViewController {
         super.viewDidLoad()
         collectionView.delegate = self
         collectionView.dataSource = self
-//        print(location?.name)
+        getPhotos()
+    }
+    
+    private func getPhotos() {
+        guard let location = location?.name else { return }
+        Flickr().searchFlickr(for: location) { [weak self] (result: Result<FlickrSearchResults>) in
+            switch result {
+                
+            case .results(let result):
+                self?.photos = result.searchResults.compactMap { $0 }
+                self?.collectionView.reloadData()
+            case .error(let error):
+                print("\(error)")
+            }
+        }
     }
 
 }
@@ -37,14 +51,15 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
 
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 20
+        return photos.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as? PhotoCollectionViewCell else {
             return UICollectionViewCell()
         }
-//        cell.imageName = "Image"
+        let photo = photos[indexPath.row]
+        cell.setupCell(photo: photo)
         return cell
     }
 }

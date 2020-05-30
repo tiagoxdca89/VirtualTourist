@@ -11,13 +11,16 @@ import UIKit
 class PhotoCollectionViewCell: UICollectionViewCell {
     
     
-    @IBOutlet weak var image: UIImageView!
+    @IBOutlet weak var imageView: UIImageView!
     
     
-    var imageName: String! {
-        didSet {
-//            image.image = UIImage(named: imageName)
+    
+    func setupCell(photo: FlickrPhoto) {
+        
+        guard let photo = photo.thumbnail else {
+            return
         }
+        self.imageView.image = photo
     }
     
 }
