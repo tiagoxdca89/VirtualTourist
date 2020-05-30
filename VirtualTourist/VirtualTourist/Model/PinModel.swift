@@ -10,10 +10,10 @@ import Foundation
 import MapKit
 
 
-struct PinModel {
-    
-    let locationName: String?
-    let latitude: CLLocationDegrees?
-    let longitude: CLLocationDegrees?
-    
-}
+//struct PinModel {
+//    
+//    let location: String?
+//    let latitude: CLLocationDegrees?
+//    let longitude: CLLocationDegrees?
+//    
+//}

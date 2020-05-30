@@ -16,10 +16,11 @@ class TravelLocationsViewController: UIViewController {
     
     let segueIdentifier = "toPhotoAlbum"
     var mapManager: MapKitManager?
+    let dataController = DataController(modelName: "VirtualTourist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        dataController.load()
         setupMapKit()
     }
     
@@ -32,7 +33,7 @@ class TravelLocationsViewController: UIViewController {
     
 
     private func setupMapKit() {
-        mapManager = MapKitManager(map: mapKit)
+        mapManager = MapKitManager(map: mapKit, dataController: dataController)
         mapManager?.delegate = self
         guard let manager = mapManager else { return }
         mapKit.delegate = manager

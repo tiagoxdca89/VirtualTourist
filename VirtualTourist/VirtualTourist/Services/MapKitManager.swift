@@ -8,6 +8,7 @@
 
 import Foundation
 import MapKit
+import CoreData
 
 typealias MKLocation = (name: String, coordinate: CLLocationCoordinate2D)
 
@@ -18,25 +19,41 @@ protocol MapKitManagerDelegate: class {
 class MapKitManager: NSObject {
     
     let map: MKMapView
-    static var pins: [PinModel] = []
+    let dataController: DataController
+    var pins: [Pin] = []
     weak var delegate: MapKitManagerDelegate?
     
-    init(map: MKMapView) {
+    init(map: MKMapView, dataController: DataController) {
         self.map = map
+        self.dataController = dataController
         super.init()
         self.addLongPressGestureToMap()
+        fetchPins()
+    }
+    
+    private func fetchPins() {
+        let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "location", ascending: false)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        if let result = try? dataController.viewContext.fetch(fetchRequest) {
+            pins = result
+            addAnnotationsToMap(pins: pins)
+        }
     }
     
     private func addLongPressGestureToMap() {
-        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(gestureRecognizer:)))
-        gesture.minimumPressDuration = 1.0
+        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(gesture:)))
         map.addGestureRecognizer(gesture)
     }
     
-    @objc func addAnnotation(gestureRecognizer: UIGestureRecognizer){
-        if gestureRecognizer.state == .began{
-            
-            let coordinates = getCoordinates(gestureRecognizer)
+    @objc func addAnnotation(gesture: UIGestureRecognizer){
+        
+        let point = gesture.location(in: map)
+        let view = map.hitTest(point, with: nil)
+        if view is MKAnnotationView { return }
+        
+        if gesture.state == .ended {
+            let coordinates = getCoordinates(gesture)
             let annotation = makeAnnotation(coordinates)
             let location = getLocation(coordinates)
             reverseGeocodeLocation(location, annotation, coordinates)
@@ -60,19 +77,37 @@ extension MapKitManager{
         return CLLocation(latitude: coordinates.latitude, longitude: coordinates.longitude)
     }
     
-    private func insertAnnotationOnMap(_ placemarks: [CLPlacemark], annotation: MKPointAnnotation) {
+    private func addAnnotationToMap(_ placemarks: [CLPlacemark], annotation: MKPointAnnotation) {
         if placemarks.count > 0 {
             let pm = placemarks[0]
             
             annotation.title = pm.locality
             annotation.subtitle = pm.subLocality
             self.map.addAnnotation(annotation)
-            debugPrint("[Locality] => \(pm.locality ?? pm.subLocality ?? "Unknown Place")")
         }
-        else {
-            annotation.title = "Unknown Place"
-            self.map.addAnnotation(annotation)
+    }
+    
+    private func addAnnotationsToMap(pins: [Pin]) {
+        var annotations: [MKAnnotation] = []
+        for pin in pins {
+            let lat = CLLocationDegrees(pin.latitude)
+            let long = CLLocationDegrees(pin.longitude)
+            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+            
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            annotation.title = pin.location
+            annotations.append(annotation)
         }
+        self.map.addAnnotations(annotations)
+    }
+    
+    private func savePin(_ annotation: MKPointAnnotation, coordinates: CLLocationCoordinate2D) {
+        let pin = Pin(context: self.dataController.viewContext)
+        pin.location = annotation.title
+        pin.longitude = coordinates.longitude
+        pin.latitude = coordinates.latitude
+        try? self.dataController.viewContext.save()
     }
     
     private func reverseGeocodeLocation(_ location: CLLocation, _ annotation: MKPointAnnotation, _ coordinates: CLLocationCoordinate2D) {
@@ -82,8 +117,8 @@ extension MapKitManager{
                 return
             }
             guard let placemarks = placemarks else { return }
-            self.insertAnnotationOnMap(placemarks, annotation: annotation)
-            MapKitManager.pins.append(PinModel(locationName: annotation.title, latitude: coordinates.latitude, longitude: coordinates.longitude))
+            self.addAnnotationToMap(placemarks, annotation: annotation)
+            self.savePin(annotation, coordinates: coordinates)
         })
     }
 }
