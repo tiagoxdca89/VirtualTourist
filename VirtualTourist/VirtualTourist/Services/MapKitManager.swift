@@ -153,18 +153,12 @@ extension MapKitManager: MKMapViewDelegate {
     }
     
     func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
-        dismissCallOut()
-    }
-    
-    private func dismissCallOut() {
-        for annotation in map.selectedAnnotations {
-            map.deselectAnnotation(annotation, animated: false)
-        }
+        mapView.selectedAnnotations.forEach { mapView.deselectAnnotation($0, animated: false) }
     }
 }
 
 extension MapKitManager: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        return touch.view?.subviews.count ?? 0 > 0
+        return map.annotations.count > 0 && touch.view?.frame.height ?? 0 > 100
     }
 }
