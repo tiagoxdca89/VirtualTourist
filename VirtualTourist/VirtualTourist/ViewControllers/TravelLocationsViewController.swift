@@ -24,6 +24,11 @@ class TravelLocationsViewController: UIViewController {
         setupMapKit()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        dismissCallOut()
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         guard segue.identifier == segueIdentifier,
             let photoAlbum = segue.destination as? PhotoAlbumViewController else { return }
@@ -37,6 +42,12 @@ class TravelLocationsViewController: UIViewController {
         mapManager?.delegate = self
         guard let manager = mapManager else { return }
         mapKit.delegate = manager
+    }
+    
+    private func dismissCallOut() {
+        for annotation in mapKit.selectedAnnotations {
+            mapKit.deselectAnnotation(annotation, animated: false)
+        }
     }
 }
 

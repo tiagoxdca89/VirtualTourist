@@ -42,7 +42,8 @@ class MapKitManager: NSObject {
     }
     
     private func addLongPressGestureToMap() {
-        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(gesture:)))
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(addAnnotation(gesture:)))
+        gesture.delegate = self
         map.addGestureRecognizer(gesture)
     }
     
@@ -149,5 +150,21 @@ extension MapKitManager: MKMapViewDelegate {
             delegate?.tapOnLocation(location: (name: title ?? subtitle ?? "Unknown",
                                                coordinate: coordinate))
         }
+    }
+    
+    func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+        dismissCallOut()
+    }
+    
+    private func dismissCallOut() {
+        for annotation in map.selectedAnnotations {
+            map.deselectAnnotation(annotation, animated: false)
+        }
+    }
+}
+
+extension MapKitManager: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        return touch.view?.subviews.count ?? 0 > 0
     }
 }
