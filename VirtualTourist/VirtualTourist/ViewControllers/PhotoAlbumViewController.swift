@@ -17,7 +17,7 @@ class PhotoAlbumViewController: UIViewController {
     
     var photos: [FlickrPhoto] = []
     
-    var location: MKLocation?
+    var pin: Pin?
     lazy var itemSize: CGSize = {
         let collectionWidth = UIScreen.main.bounds.width / 3 - 2
         let itemWidth = collectionWidth
@@ -32,7 +32,7 @@ class PhotoAlbumViewController: UIViewController {
     }
     
     private func getPhotos() {
-        guard let location = location?.name else { return }
+        guard let location = pin?.location else { return }
         Flickr().searchFlickr(for: location) { [weak self] (result: Result<FlickrSearchResults>) in
             switch result {
                 
@@ -88,6 +88,6 @@ extension PhotoAlbumViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0) //.zero
+        return .zero
     }
 }

@@ -10,10 +10,9 @@ import Foundation
 import MapKit
 import CoreData
 
-typealias MKLocation = (name: String, coordinate: CLLocationCoordinate2D)
 
 protocol MapKitManagerDelegate: class {
-    func tapOnLocation(location: MKLocation)
+    func tapOnLocation(pin: Pin)
 }
 
 class MapKitManager: NSObject {
@@ -142,13 +141,16 @@ extension MapKitManager: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         if control == view.rightCalloutAccessoryView {
-            guard let title = view.annotation?.title, let subtitle = view.annotation?.subtitle else {
+            guard let title = view.annotation?.title else {
                 print("Something went wrong")
                 return
             }
             guard let coordinate = view.annotation?.coordinate else { return }
-            delegate?.tapOnLocation(location: (name: title ?? subtitle ?? "Unknown",
-                                               coordinate: coordinate))
+            let pin = Pin(context: dataController.viewContext)
+            pin.location = title
+            pin.latitude = coordinate.latitude
+            pin.longitude = coordinate.longitude
+            delegate?.tapOnLocation(pin: pin)
         }
     }
     
@@ -159,6 +161,9 @@ extension MapKitManager: MKMapViewDelegate {
 
 extension MapKitManager: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if map.annotations.count == 0 {
+            return true
+        }
         return map.annotations.count > 0 && touch.view?.frame.height ?? 0 > 100
     }
 }
