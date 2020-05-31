@@ -17,7 +17,7 @@ class DataController {
         return persistentContainer.viewContext
     }
     
-    let backgroundContext:NSManagedObjectContext!
+    let backgroundContext: NSManagedObjectContext!
     
     init(modelName: String) {
         persistentContainer = NSPersistentContainer(name: modelName)
@@ -25,13 +25,13 @@ class DataController {
         backgroundContext = persistentContainer.newBackgroundContext()
     }
     
-//    func configureContexts() {
-//        viewContext.automaticallyMergesChangesFromParent = true
-//        backgroundContext.automaticallyMergesChangesFromParent = true
-//
-//        backgroundContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
-//        viewContext.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
-//    }
+    func configureContexts() {
+        viewContext.automaticallyMergesChangesFromParent = true
+        backgroundContext.automaticallyMergesChangesFromParent = true
+
+        backgroundContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
+        viewContext.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
+    }
     
     func load(completion: (() -> Void)? = nil) {
         persistentContainer.loadPersistentStores { storeDescription, error in
@@ -39,7 +39,7 @@ class DataController {
                 fatalError(error!.localizedDescription)
             }
 //            self.autoSaveViewContext()
-//            self.configureContexts()
+            self.configureContexts()
             completion?()
         }
     }

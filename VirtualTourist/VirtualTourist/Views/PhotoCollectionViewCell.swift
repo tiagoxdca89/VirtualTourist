@@ -7,20 +7,27 @@
 //
 
 import UIKit
+import Kingfisher
 
 class PhotoCollectionViewCell: UICollectionViewCell {
     
-    
     @IBOutlet weak var imageView: UIImageView!
     
-    
-    
-    func setupCell(photo: FlickrPhoto) {
-        
-        guard let photo = photo.thumbnail else {
-            return
-        }
-        self.imageView.image = photo
+    func loadImageBy(url: String) {
+        let processor = DownsamplingImageProcessor(size: imageView.bounds.size)
+        imageView.kf.indicatorType = .activity
+        imageView.kf.setImage(
+            with: URL(string: url),
+            options: [
+                .processor(processor),
+                .scaleFactor(imageView.contentScaleFactor),
+                .transition(.fade(2)),
+                .cacheOriginalImage
+            ])
     }
     
+    func loadImageBy(data: Data?) {
+        guard let data = data else { return }
+        imageView.image = UIImage(data: data)
+    }
 }

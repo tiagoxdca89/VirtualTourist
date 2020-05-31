@@ -1,16 +1,22 @@
 PODS:
+  - Kingfisher (5.14.0):
+    - Kingfisher/Core (= 5.14.0)
+  - Kingfisher/Core (5.14.0)
   - MBProgressHUD (1.2.0)
 
 DEPENDENCIES:
+  - Kingfisher (~> 5.14)
   - MBProgressHUD
 
 SPEC REPOS:
   trunk:
+    - Kingfisher
     - MBProgressHUD
 
 SPEC CHECKSUMS:
+  Kingfisher: 7b64389a43139c903ec434788344c288217c792d
   MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
 
-PODFILE CHECKSUM: 9a51fe2e52418493ca09c093b9277b6f3a558feb
+PODFILE CHECKSUM: 7b76278be69329e61b62aeed9ef466da0c873c31
 
 COCOAPODS: 1.9.1

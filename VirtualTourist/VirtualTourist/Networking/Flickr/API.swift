@@ -8,9 +8,9 @@
 
 import Foundation
 
-struct API {
-    
-    struct FlickerPhotos {
-        static let path = "https://onthemap-api.udacity.com/v1/session"
-    }
-}
+//struct API {
+//    
+//    struct FlickerPhotos {
+//        static let path = "https://onthemap-api.udacity.com/v1/session"
+//    }
+//}

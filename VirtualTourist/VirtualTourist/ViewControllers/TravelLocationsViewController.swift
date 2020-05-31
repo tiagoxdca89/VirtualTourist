@@ -34,6 +34,7 @@ class TravelLocationsViewController: UIViewController {
             let photoAlbum = segue.destination as? PhotoAlbumViewController else { return }
         guard let pin = sender as? Pin else { return }
         photoAlbum.pin = pin
+        photoAlbum.dataController = dataController
     }
     
 
@@ -49,6 +50,9 @@ class TravelLocationsViewController: UIViewController {
             mapKit.deselectAnnotation(annotation, animated: false)
         }
     }
+    
+    
+    
 }
 
 extension TravelLocationsViewController: MapKitManagerDelegate {

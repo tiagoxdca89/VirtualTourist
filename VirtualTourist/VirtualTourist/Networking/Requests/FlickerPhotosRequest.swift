@@ -8,11 +8,11 @@
 
 import Foundation
 
-enum FlickerPhotosRequest {
-    
-    case getFlickerPhotos
-    
-    var path: String {
-        return API.FlickerPhotos.path
-    }
-}
+//enum FlickerPhotosRequest {
+//    
+//    case getFlickerPhotos
+//    
+//    var path: String {
+//        return API.FlickerPhotos.path
+//    }
+//}
