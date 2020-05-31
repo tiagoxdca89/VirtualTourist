@@ -21,7 +21,7 @@ class PhotoCollectionViewCell: UICollectionViewCell {
             options: [
                 .processor(processor),
                 .scaleFactor(imageView.contentScaleFactor),
-                .transition(.fade(2)),
+                .transition(.fade(0.5)),
                 .cacheOriginalImage
             ])
     }

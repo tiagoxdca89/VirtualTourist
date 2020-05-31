@@ -17,7 +17,7 @@ class PhotoAlbumViewController: UIViewController {
     @IBOutlet weak var btnNewCollection: UIButton!
     
     
-    var fetchedResultsController: NSFetchedResultsController<Pin>!
+    var fetchedResultsController: NSFetchedResultsController<Photo>!
     var dataController: DataController?
     
     
@@ -40,16 +40,12 @@ class PhotoAlbumViewController: UIViewController {
     }
     
     private func setupFetchedResultsController(completion: @escaping (() -> Void)) {
-        guard let dataController = dataController else {
-            return
-        }
-        guard let pin = pin, let location = pin.location else {
-            return
-        }
-        let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
-        let predicate: NSPredicate = NSPredicate(format: "latitude == %lf && location == %@", pin.latitude, location)
+        guard let dataController = dataController, let pin = pin else { return }
+        
+        let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
+        let predicate: NSPredicate = NSPredicate(format: "pin == %@", pin)
         fetchRequest.predicate = predicate
-        let sortDescriptor = NSSortDescriptor(key: "location", ascending: false)
+        let sortDescriptor = NSSortDescriptor(key: "photoID", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
@@ -63,10 +59,10 @@ class PhotoAlbumViewController: UIViewController {
     
     private func getPhotos() {
         guard let dataController = dataController else { return }
-        let photosSavedCount = fetchedResultsController.fetchedObjects?.first?.photos?.count ?? 0
-        if photosSavedCount == 0 {
+        if fetchedResultsController.fetchedObjects?.count == 0 {
             getFlickerPhotos { (photos, error) in
-                guard let photos = photos else { debugPrint("Show error message")
+                guard let photos = photos else {
+                    debugPrint("Show error message")
                     return
                 }
                 photos.forEach { (flickr: FlickrPhoto) in
@@ -101,7 +97,7 @@ class PhotoAlbumViewController: UIViewController {
 extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return fetchedResultsController.fetchedObjects?.first?.photos?.count ?? 0
+        return fetchedResultsController.fetchedObjects?.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -109,17 +105,20 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
             return UICollectionViewCell()
         }
         
-        guard let photos = fetchedResultsController.fetchedObjects?.first?.photos?.allObjects as? [Photo] else { return UICollectionViewCell() }
+        let photo = fetchedResultsController.fetchedObjects?[indexPath.row]
         
-        let photo = photos[indexPath.row]
-        
-        if let url = photo.url {
+        if let url = photo?.url {
             cell.loadImageBy(url: url)
         } else {
-            cell.loadImageBy(data: photo.data)
+            cell.loadImageBy(data: photo?.data)
         }
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        deletePhoto(at: indexPath)
+    }
+    
 }
 
 extension PhotoAlbumViewController: UICollectionViewDelegateFlowLayout {
@@ -152,9 +151,9 @@ extension PhotoAlbumViewController: UICollectionViewDelegateFlowLayout {
 
 extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     
-//    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-//        collectionView.performBatchUpdates(nil, completion: nil)
-//    }
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        collectionView.performBatchUpdates(nil, completion: nil)
+    }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith diff: CollectionDifference<NSManagedObjectID>) {
         collectionView.performBatchUpdates(nil, completion: nil)
@@ -166,10 +165,15 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         case .insert:
             collectionView.insertItems(at: [indexPath!])
         case .delete:
-            collectionView.deleteItems(at: [indexPath!])
+            collectionView.deleteItems(at:[indexPath!])
         default:
             break
         }
-        
+    }
+    
+    func deletePhoto(at indexPath: IndexPath) {
+        let noteToDelete = fetchedResultsController.object(at: indexPath)
+        dataController?.viewContext.delete(noteToDelete)
+        try? dataController?.viewContext.save()
     }
 }
