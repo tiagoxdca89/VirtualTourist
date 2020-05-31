@@ -16,8 +16,8 @@ class PhotoAlbumViewController: UIViewController {
     @IBOutlet weak var btnNewCollection: UIButton!
     
     var photos: [FlickrPhoto] = []
-    
     var pin: Pin?
+    
     lazy var itemSize: CGSize = {
         let collectionWidth = UIScreen.main.bounds.width / 3 - 2
         let itemWidth = collectionWidth
@@ -35,9 +35,8 @@ class PhotoAlbumViewController: UIViewController {
         guard let location = pin?.location else { return }
         Flickr().searchFlickr(for: location) { [weak self] (result: Result<FlickrSearchResults>) in
             switch result {
-                
             case .results(let result):
-                self?.photos = result.searchResults.compactMap { $0 }
+                self?.photos = result.searchResults
                 self?.collectionView.reloadData()
             case .error(let error):
                 print("\(error)")

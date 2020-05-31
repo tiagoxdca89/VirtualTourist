@@ -26,7 +26,7 @@ class MapKitManager: NSObject {
         self.map = map
         self.dataController = dataController
         super.init()
-        self.addLongPressGestureToMap()
+        self.addTapGestureToMap()
         fetchPins()
     }
     
@@ -40,18 +40,20 @@ class MapKitManager: NSObject {
         }
     }
     
-    private func addLongPressGestureToMap() {
+    private func addTapGestureToMap() {
         let gesture = UITapGestureRecognizer(target: self, action: #selector(addAnnotation(gesture:)))
         gesture.delegate = self
         map.addGestureRecognizer(gesture)
     }
     
+    private func addPanGestureRecognizer() {
+        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(gesture:)))
+        gesture.minimumPressDuration = 1
+        gesture.delegate = self
+        map.addGestureRecognizer(gesture)
+    }
+    
     @objc func addAnnotation(gesture: UIGestureRecognizer){
-        
-        let point = gesture.location(in: map)
-        let view = map.hitTest(point, with: nil)
-        if view is MKAnnotationView { return }
-        
         if gesture.state == .ended {
             let coordinates = getCoordinates(gesture)
             let annotation = makeAnnotation(coordinates)
@@ -80,7 +82,6 @@ extension MapKitManager{
     private func addAnnotationToMap(_ placemarks: [CLPlacemark], annotation: MKPointAnnotation) {
         if placemarks.count > 0 {
             let pm = placemarks[0]
-            
             annotation.title = pm.locality
             annotation.subtitle = pm.subLocality
             self.map.addAnnotation(annotation)
@@ -105,9 +106,11 @@ extension MapKitManager{
     private func savePin(_ annotation: MKPointAnnotation, coordinates: CLLocationCoordinate2D) {
         let pin = Pin(context: self.dataController.viewContext)
         pin.location = annotation.title
-        pin.longitude = coordinates.longitude
-        pin.latitude = coordinates.latitude
-        try? self.dataController.viewContext.save()
+        pin.longitude = coordinates.longitude as Double
+        pin.latitude = coordinates.latitude as Double
+        if dataController.viewContext.hasChanges {
+            try? self.dataController.viewContext.save()
+        }
     }
     
     private func reverseGeocodeLocation(_ location: CLLocation, _ annotation: MKPointAnnotation, _ coordinates: CLLocationCoordinate2D) {
@@ -121,6 +124,16 @@ extension MapKitManager{
             self.savePin(annotation, coordinates: coordinates)
         })
     }
+    
+    private func fetchPinBy(location: String?, coordinates: CLLocationCoordinate2D?) -> Pin? {
+        guard let location = location, let coordinates = coordinates else { return nil }
+        let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
+        let predicate: NSPredicate = NSPredicate(format: "latitude == %lf && location == %@", coordinates.latitude, location)
+        fetchRequest.predicate = predicate
+        return try? dataController.viewContext.fetch(fetchRequest).first
+        
+    }
+    
 }
 extension MapKitManager: MKMapViewDelegate {
     
@@ -141,21 +154,16 @@ extension MapKitManager: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
         if control == view.rightCalloutAccessoryView {
-            guard let title = view.annotation?.title else {
-                print("Something went wrong")
-                return
+            if let pin = fetchPinBy(location: view.annotation?.title ?? nil, coordinates: view.annotation?.coordinate) {
+                delegate?.tapOnLocation(pin: pin)
             }
-            guard let coordinate = view.annotation?.coordinate else { return }
-            let pin = Pin(context: dataController.viewContext)
-            pin.location = title
-            pin.latitude = coordinate.latitude
-            pin.longitude = coordinate.longitude
-            delegate?.tapOnLocation(pin: pin)
         }
     }
     
     func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
-        mapView.selectedAnnotations.forEach { mapView.deselectAnnotation($0, animated: false) }
+        DispatchQueue.main.async {
+            mapView.selectedAnnotations.forEach { mapView.deselectAnnotation($0, animated: false) }
+        }
     }
 }
 
