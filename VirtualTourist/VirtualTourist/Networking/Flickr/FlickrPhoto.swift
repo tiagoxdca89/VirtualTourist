@@ -23,7 +23,7 @@ class FlickrPhoto: Equatable {
         self.secret = secret
     }
     
-    func flickrImageURL(_ size: String = "m") -> URL? {
+    func flickrImageURL(_ size: String = "s") -> URL? {
         if let url =  URL(string: "https://farm\(farm).staticflickr.com/\(server)/\(photoID)_\(secret)_\(size).jpg") {
             return url
         }

@@ -54,16 +54,19 @@
                                 </constraints>
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="H2P-N9-irZ">
-                                <rect key="frame" x="0.0" y="686" width="414" height="50"/>
+                                <rect key="frame" x="0.0" y="678" width="414" height="50"/>
                                 <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="50" id="PuF-bx-LJf"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="18"/>
                                 <state key="normal" title="New Collection"/>
+                                <connections>
+                                    <action selector="getNewAlbum:" destination="2GH-1m-d7C" eventType="touchUpInside" id="nMp-0k-fA3"/>
+                                </connections>
                             </button>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="Oas-ht-OAx">
-                                <rect key="frame" x="2" y="194" width="410" height="492"/>
+                                <rect key="frame" x="2" y="194" width="410" height="484"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="GbO-ec-47v">
                                     <size key="itemSize" width="100" height="100"/>
@@ -107,7 +110,7 @@
                             <constraint firstItem="Oas-ht-OAx" firstAttribute="leading" secondItem="AyJ-eA-HW4" secondAttribute="leading" constant="2" id="WMj-nR-v1g"/>
                             <constraint firstItem="LBc-cU-mCp" firstAttribute="top" secondItem="AyJ-eA-HW4" secondAttribute="top" id="XpU-Qx-mgq"/>
                             <constraint firstItem="H2P-N9-irZ" firstAttribute="leading" secondItem="AyJ-eA-HW4" secondAttribute="leading" id="Yjm-bk-Ii2"/>
-                            <constraint firstItem="AyJ-eA-HW4" firstAttribute="bottom" secondItem="H2P-N9-irZ" secondAttribute="bottom" id="ZYv-b3-kCI"/>
+                            <constraint firstItem="AyJ-eA-HW4" firstAttribute="bottom" secondItem="H2P-N9-irZ" secondAttribute="bottom" constant="8" id="ZYv-b3-kCI"/>
                             <constraint firstItem="AyJ-eA-HW4" firstAttribute="trailing" secondItem="Oas-ht-OAx" secondAttribute="trailing" constant="2" id="g6t-Oz-TXq"/>
                             <constraint firstItem="LBc-cU-mCp" firstAttribute="leading" secondItem="AyJ-eA-HW4" secondAttribute="leading" id="gnM-2n-5F3"/>
                         </constraints>

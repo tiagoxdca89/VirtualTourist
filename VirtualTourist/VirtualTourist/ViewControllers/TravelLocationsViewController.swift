@@ -50,9 +50,6 @@ class TravelLocationsViewController: UIViewController {
             mapKit.deselectAnnotation(annotation, animated: false)
         }
     }
-    
-    
-    
 }
 
 extension TravelLocationsViewController: MapKitManagerDelegate {

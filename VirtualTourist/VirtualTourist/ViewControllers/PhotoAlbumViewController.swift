@@ -20,9 +20,9 @@ class PhotoAlbumViewController: UIViewController {
     var fetchedResultsController: NSFetchedResultsController<Photo>!
     var dataController: DataController?
     
-    
     var photos: [FlickrPhoto] = []
     var pin: Pin?
+    var page: Int = 1
     
     lazy var itemSize: CGSize = {
         let collectionWidth = UIScreen.main.bounds.width / 3 - 2
@@ -35,9 +35,22 @@ class PhotoAlbumViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         setupFetchedResultsController {
-            self.getPhotos()
+            if self.fetchedResultsController.fetchedObjects?.count == 0 {
+                self.getPhotos()
+            }
         }
     }
+    
+    @IBAction func getNewAlbum(_ sender: Any) {
+        guard let photos = fetchedResultsController.fetchedObjects else { return }
+        for photo in photos {
+            dataController?.viewContext.delete(photo)
+        }
+        try? dataController?.viewContext.save()
+        generateRandomPage()
+        getPhotos()
+    }
+    
     
     private func setupFetchedResultsController(completion: @escaping (() -> Void)) {
         guard let dataController = dataController, let pin = pin else { return }
@@ -57,32 +70,34 @@ class PhotoAlbumViewController: UIViewController {
         }
     }
     
-    private func getPhotos() {
+    fileprivate func savePhotosToCoredata(_ photos: [FlickrPhoto]) {
         guard let dataController = dataController else { return }
-        if fetchedResultsController.fetchedObjects?.count == 0 {
-            getFlickerPhotos { (photos, error) in
-                guard let photos = photos else {
-                    debugPrint("Show error message")
-                    return
-                }
-                photos.forEach { (flickr: FlickrPhoto) in
-                    let photo = Photo(context: dataController.viewContext)
-                    photo.data = flickr.thumbnail?.pngData()
-                    photo.photoID = flickr.photoID
-                    photo.url = flickr.flickrImageURL()?.absoluteString
-                    photo.pin = self.pin
-                    if dataController.viewContext.hasChanges {
-                        try? dataController.viewContext.save()
-                    }
-                }
-                self.collectionView.reloadData()
+        photos.forEach { (flickr: FlickrPhoto) in
+            let photo = Photo(context: dataController.viewContext)
+            photo.data = flickr.thumbnail?.pngData()
+            photo.photoID = flickr.photoID
+            photo.url = flickr.flickrImageURL()?.absoluteString
+            photo.pin = self.pin
+            if dataController.viewContext.hasChanges {
+                try? dataController.viewContext.save()
             }
+            self.collectionView.reloadData()
         }
     }
     
-    private func getFlickerPhotos(completion: @escaping (([FlickrPhoto]?, Error?) -> Void)) {
+    private func getPhotos() {
+        getFlickerPhotos(page: page) { (photos, error) in
+            guard let photos = photos else {
+                debugPrint("Show error message")
+                return
+            }
+            self.savePhotosToCoredata(photos)
+        }
+    }
+    
+    private func getFlickerPhotos(page: Int, completion: @escaping (([FlickrPhoto]?, Error?) -> Void)) {
         guard let location = pin?.location else { return }
-        Flickr().searchFlickr(for: location) { (result: Result<FlickrSearchResults>) in
+        Flickr().searchFlickr(for: location, page: page) { (result: Result<FlickrSearchResults>) in
             switch result {
             case .results(let result):
                 completion(result.searchResults, nil)
@@ -91,7 +106,14 @@ class PhotoAlbumViewController: UIViewController {
             }
         }
     }
-
+    
+    private func generateRandomPage() {
+        if page == 10 {
+            page = 1
+        } else {
+            page += 1
+        }
+    }
 }
 
 extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource {
