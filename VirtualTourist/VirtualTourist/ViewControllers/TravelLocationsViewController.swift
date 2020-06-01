@@ -11,17 +11,16 @@ import MapKit
 
 class TravelLocationsViewController: UIViewController {
     
-    
     @IBOutlet weak var mapKit: MKMapView!
     
     let segueIdentifier = "toPhotoAlbum"
     var mapManager: MapKitManager?
-    let dataController = DataController(modelName: "VirtualTourist")
+    var dataController: DataController?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = "Virtual Tourist";
-        dataController.load()
+        dataController = appDelegate.dataController
         setupMapKit()
     }
     
@@ -35,11 +34,11 @@ class TravelLocationsViewController: UIViewController {
             let photoAlbum = segue.destination as? PhotoAlbumViewController else { return }
         guard let pin = sender as? Pin else { return }
         photoAlbum.pin = pin
-        photoAlbum.dataController = dataController
     }
     
 
     private func setupMapKit() {
+        guard let dataController = dataController else { return }
         mapManager = MapKitManager(map: mapKit, controller: self, dataController: dataController)
         mapManager?.delegate = self
         guard let manager = mapManager else { return }

@@ -30,12 +30,16 @@ class PhotoAlbumViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        dataController = appDelegate.dataController
         collectionView.delegate = self
         collectionView.dataSource = self
+        defineLocationOnMap(pin: pin)
         setupFetchedResultsController {
             if self.fetchedResultsController.fetchedObjects?.count == 0 {
                 self.getPhotos()
-            } else { self.showLoading(show: false) }
+            } else {
+                self.showLoading(show: false)
+            }
         }
     }
     
@@ -119,6 +123,17 @@ class PhotoAlbumViewController: UIViewController {
             page += 1
         }
     }
+    
+    private func defineLocationOnMap(pin: Pin?) {
+        guard let lat = pin?.latitude, let lon = pin?.longitude else { return }
+        let center = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        let region = MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
+        mapKit.setRegion(region, animated: true)
+        let annotation = MKPointAnnotation()
+        annotation.title = pin?.location
+        annotation.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        mapKit.addAnnotation(annotation)
+    }
 }
 
 extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -132,12 +147,7 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
             return UICollectionViewCell()
         }
         let photo = fetchedResultsController.fetchedObjects?[indexPath.row]
-        
-        if let url = photo?.url {
-            cell.loadImageBy(url: url)
-        } else {
-            cell.loadImageBy(data: photo?.data)
-        }
+        cell.load(photo: photo)
         return cell
     }
     

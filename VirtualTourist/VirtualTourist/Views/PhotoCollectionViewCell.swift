@@ -13,7 +13,8 @@ class PhotoCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet weak var imageView: UIImageView!
     
-    func loadImageBy(url: String) {
+    func load(photo: Photo?) {
+        guard let url = photo?.url else { return }
         let processor = DownsamplingImageProcessor(size: imageView.bounds.size)
         imageView.kf.indicatorType = .activity
         imageView.kf.setImage(
@@ -26,8 +27,8 @@ class PhotoCollectionViewCell: UICollectionViewCell {
             ])
     }
     
-    func loadImageBy(data: Data?) {
-        guard let data = data else { return }
-        imageView.image = UIImage(data: data)
-    }
+//    func loadImageBy(data: Data?) {
+//        guard let data = data else { return }
+//        imageView.image = UIImage(data: data)
+//    }
 }
