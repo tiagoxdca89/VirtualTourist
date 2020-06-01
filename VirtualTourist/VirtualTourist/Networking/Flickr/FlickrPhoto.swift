@@ -8,9 +8,8 @@
 
 import UIKit
 
-class FlickrPhoto: Equatable {
-    var thumbnail: UIImage?
-    var largeImage: UIImage?
+struct FlickrPhoto: Equatable {
+    
     let photoID: String
     let farm: Int
     let server: String

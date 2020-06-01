@@ -79,7 +79,6 @@ class PhotoAlbumViewController: UIViewController {
         guard let dataController = dataController else { return }
         photos.forEach { (flickr: FlickrPhoto) in
             let photo = Photo(context: dataController.viewContext)
-            photo.data = flickr.thumbnail?.pngData()
             photo.photoID = flickr.photoID
             photo.url = flickr.flickrImageURL()?.absoluteString
             photo.pin = self.pin

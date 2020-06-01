@@ -21,7 +21,6 @@ class DataController {
     
     init(modelName: String) {
         persistentContainer = NSPersistentContainer(name: modelName)
-        
         backgroundContext = persistentContainer.newBackgroundContext()
     }
     
