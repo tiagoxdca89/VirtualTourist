@@ -7,5 +7,6 @@ target 'VirtualTourist' do
 
   # Pods for VirtualTourist
     pod 'MBProgressHUD'
+    pod 'Kingfisher', '~> 5.14'
 
 end
