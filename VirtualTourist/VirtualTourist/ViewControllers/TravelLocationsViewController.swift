@@ -20,6 +20,7 @@ class TravelLocationsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.title = "Virtual Tourist";
         dataController.load()
         setupMapKit()
     }
@@ -39,7 +40,7 @@ class TravelLocationsViewController: UIViewController {
     
 
     private func setupMapKit() {
-        mapManager = MapKitManager(map: mapKit, dataController: dataController)
+        mapManager = MapKitManager(map: mapKit, controller: self, dataController: dataController)
         mapManager?.delegate = self
         guard let manager = mapManager else { return }
         mapKit.delegate = manager

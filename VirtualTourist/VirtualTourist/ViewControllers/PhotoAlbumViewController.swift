@@ -19,8 +19,6 @@ class PhotoAlbumViewController: UIViewController {
     
     var fetchedResultsController: NSFetchedResultsController<Photo>!
     var dataController: DataController?
-    
-    var photos: [FlickrPhoto] = []
     var pin: Pin?
     var page: Int = 1
     
@@ -37,24 +35,27 @@ class PhotoAlbumViewController: UIViewController {
         setupFetchedResultsController {
             if self.fetchedResultsController.fetchedObjects?.count == 0 {
                 self.getPhotos()
-            }
+            } else { self.showLoading(show: false) }
         }
     }
     
     @IBAction func getNewAlbum(_ sender: Any) {
         guard let photos = fetchedResultsController.fetchedObjects else { return }
+        if !Reachability.isConnectedToNetwork() {
+            showAlert(title: "No Internet Connection", message: "Can't fetch new photos")
+            return
+        }
+        showLoading(show: true)
         for photo in photos {
             dataController?.viewContext.delete(photo)
         }
         try? dataController?.viewContext.save()
-        generateRandomPage()
+        getNextPage()
         getPhotos()
     }
     
-    
     private func setupFetchedResultsController(completion: @escaping (() -> Void)) {
         guard let dataController = dataController, let pin = pin else { return }
-        
         let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
         let predicate: NSPredicate = NSPredicate(format: "pin == %@", pin)
         fetchRequest.predicate = predicate
@@ -70,7 +71,7 @@ class PhotoAlbumViewController: UIViewController {
         }
     }
     
-    fileprivate func savePhotosToCoredata(_ photos: [FlickrPhoto]) {
+    private func savePhotosToCoredata(_ photos: [FlickrPhoto]) {
         guard let dataController = dataController else { return }
         photos.forEach { (flickr: FlickrPhoto) in
             let photo = Photo(context: dataController.viewContext)
@@ -78,20 +79,24 @@ class PhotoAlbumViewController: UIViewController {
             photo.photoID = flickr.photoID
             photo.url = flickr.flickrImageURL()?.absoluteString
             photo.pin = self.pin
-            if dataController.viewContext.hasChanges {
-                try? dataController.viewContext.save()
-            }
-            self.collectionView.reloadData()
         }
+        if dataController.viewContext.hasChanges {
+            try? dataController.viewContext.save()
+        }
+        showLoading(show: false)
     }
     
     private func getPhotos() {
-        getFlickerPhotos(page: page) { (photos, error) in
-            guard let photos = photos else {
-                debugPrint("Show error message")
-                return
+        if Reachability.isConnectedToNetwork() {
+            getFlickerPhotos(page: page) { (photos, error) in
+                guard let photos = photos else {
+                    debugPrint("Show error message")
+                    return
+                }
+                self.savePhotosToCoredata(photos)
             }
-            self.savePhotosToCoredata(photos)
+        } else {
+            showAlert(title: "You are not connected to the internet!", message: "")
         }
     }
     
@@ -107,7 +112,7 @@ class PhotoAlbumViewController: UIViewController {
         }
     }
     
-    private func generateRandomPage() {
+    private func getNextPage() {
         if page == 10 {
             page = 1
         } else {
@@ -126,7 +131,6 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as? PhotoCollectionViewCell else {
             return UICollectionViewCell()
         }
-        
         let photo = fetchedResultsController.fetchedObjects?[indexPath.row]
         
         if let url = photo?.url {
@@ -144,8 +148,6 @@ extension PhotoAlbumViewController: UICollectionViewDelegate, UICollectionViewDa
 }
 
 extension PhotoAlbumViewController: UICollectionViewDelegateFlowLayout {
-    
-     
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,

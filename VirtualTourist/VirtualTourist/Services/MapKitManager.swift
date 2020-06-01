@@ -19,18 +19,21 @@ class MapKitManager: NSObject {
     
     let map: MKMapView
     let dataController: DataController
+    weak var viewController: UIViewController?
     var pins: [Pin] = []
     weak var delegate: MapKitManagerDelegate?
     
-    init(map: MKMapView, dataController: DataController) {
+    init(map: MKMapView, controller: UIViewController, dataController: DataController) {
         self.map = map
         self.dataController = dataController
+        self.viewController = controller
         super.init()
         self.addTapGestureToMap()
         fetchPins()
     }
     
     private func fetchPins() {
+        viewController?.showLoading(show: true)
         let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "location", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
@@ -38,6 +41,7 @@ class MapKitManager: NSObject {
             pins = result
             addAnnotationsToMap(pins: pins)
         }
+        viewController?.showLoading(show: false)
     }
     
     private func addTapGestureToMap() {
@@ -53,17 +57,23 @@ class MapKitManager: NSObject {
         map.addGestureRecognizer(gesture)
     }
     
-    @objc func addAnnotation(gesture: UIGestureRecognizer){
-        if gesture.state == .ended {
-            let coordinates = getCoordinates(gesture)
-            let annotation = makeAnnotation(coordinates)
-            let location = getLocation(coordinates)
-            reverseGeocodeLocation(location, annotation, coordinates)
+    @objc func addAnnotation(gesture: UIGestureRecognizer) {
+        if Reachability.isConnectedToNetwork() {
+            viewController?.showLoading(show: true)
+            if gesture.state == .ended {
+                let coordinates = getCoordinates(gesture)
+                let annotation = makeAnnotation(coordinates)
+                let location = getLocation(coordinates)
+                reverseGeocodeLocation(location, annotation, coordinates)
+            }
+        } else {
+            viewController?.showAlert(title: "No internet", message: "Can't geocoding that location!")
         }
     }
 }
 
 extension MapKitManager{
+    
     private func getCoordinates(_ gestureRecognizer: UIGestureRecognizer) -> CLLocationCoordinate2D {
         let touchPoint = gestureRecognizer.location(in: map)
         return map.convert(touchPoint, toCoordinateFrom: map)
@@ -111,12 +121,14 @@ extension MapKitManager{
         if dataController.viewContext.hasChanges {
             try? self.dataController.viewContext.save()
         }
+        viewController?.showLoading(show: false)
     }
     
     private func reverseGeocodeLocation(_ location: CLLocation, _ annotation: MKPointAnnotation, _ coordinates: CLLocationCoordinate2D) {
-        CLGeocoder().reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
+        CLGeocoder().reverseGeocodeLocation(location, completionHandler: { (placemarks, error) -> Void in
             if let error = error {
-                debugPrint("\(error.localizedDescription)")
+                self.viewController?.showLoading(show: false)
+                self.viewController?.showAlert(title: "Something was wrong!", message: error.localizedDescription)
                 return
             }
             guard let placemarks = placemarks else { return }
@@ -131,10 +143,9 @@ extension MapKitManager{
         let predicate: NSPredicate = NSPredicate(format: "latitude == %lf && location == %@", coordinates.latitude, location)
         fetchRequest.predicate = predicate
         return try? dataController.viewContext.fetch(fetchRequest).first
-        
     }
-    
 }
+
 extension MapKitManager: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
