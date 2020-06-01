@@ -96,8 +96,8 @@ class PhotoAlbumViewController: UIViewController {
     }
     
     private func getFlickerPhotos(page: Int, completion: @escaping (([FlickrPhoto]?, Error?) -> Void)) {
-        guard let location = pin?.location else { return }
-        Flickr().searchFlickr(for: location, page: page) { (result: Result<FlickrSearchResults>) in
+        guard let location = pin?.location, let lon = pin?.longitude, let lat = pin?.latitude else { return }
+        Flickr().searchFlickr(for: location, page: page, lon: lon, lat: lat) { (result: Result<FlickrSearchResults>) in
             switch result {
             case .results(let result):
                 completion(result.searchResults, nil)
