@@ -31,6 +31,8 @@ class PhotoAlbumViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         dataController = appDelegate.dataController
+        collectionView.delegate = self
+        collectionView.dataSource = self
         defineLocationOnMap(pin: pin)
         setupFetchedResultsController {
             if self.fetchedResultsController.fetchedObjects?.count == 0 {
@@ -162,7 +164,7 @@ extension PhotoAlbumViewController: UICollectionViewDelegateFlowLayout {
         return itemSize
     }
     
-    
+
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {

@@ -28,7 +28,7 @@ class MapKitManager: NSObject {
         self.dataController = dataController
         self.viewController = controller
         super.init()
-        addLongGestureRecognizer()
+        self.addTapGestureToMap()
         fetchPins()
     }
     
@@ -44,7 +44,13 @@ class MapKitManager: NSObject {
         viewController?.showLoading(show: false)
     }
     
-    private func addLongGestureRecognizer() {
+    private func addTapGestureToMap() {
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(addAnnotation(gesture:)))
+        gesture.delegate = self
+        map.addGestureRecognizer(gesture)
+    }
+    
+    private func addPanGestureRecognizer() {
         let gesture = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(gesture:)))
         gesture.minimumPressDuration = 1
         gesture.delegate = self
@@ -89,7 +95,6 @@ extension MapKitManager{
             annotation.title = pm.locality
             annotation.subtitle = pm.subLocality
             self.map.addAnnotation(annotation)
-            viewController?.showLoading(show: false)
         }
     }
     
